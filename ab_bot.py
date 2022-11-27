@@ -23,6 +23,8 @@ Internal commands description:
     JSON file example:
         [{'name': 'Sasha', 'phones': ['123', '456', '789']}, {'name': 'Vova', 'phones': ['123', '456', '789']}]
     For command aliases see argparser creation function - create_argument_parser()
+
+    TODO: birthday processing
 """
 
 

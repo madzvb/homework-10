@@ -156,8 +156,9 @@ class Record():
     @property
     def value(self):
         result = {}
-        result["name"]   = self.name.value
-        result["phones"] = self.phones.value
+        result["name"]      = self.name.value
+        result["phones"]    = self.phones.value if self.birthday else None
+        result["birthday"]  = self.birthday.value if self.birthday else None
         return result
     
     @property
@@ -187,12 +188,12 @@ class Record():
             self.phones[phone_new.value] = phone_new
 
     @property
-    def birthbay(self):
-        return self._birthbay
+    def birthday(self):
+        return self._birthday
     
-    @name.setter
-    def birthbay(self, birthbay: Birthday):
-        self._birthbay = birthbay
+    @birthday.setter
+    def birthday(self, birthday: Birthday):
+        self._birthday = birthday
 
     def days_to_birthday(self) -> int:
         if not self._birthday:
@@ -302,4 +303,5 @@ def tests():
     return
 
 if __name__ == "__main__":
-    tests()
+    # tests()
+    pass
