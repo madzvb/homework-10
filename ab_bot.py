@@ -132,7 +132,7 @@ def check_phone(phone,raise_exception=True):
     return result
 
 
-def check_bithday(birthday: str):
+def check_birthday(birthday: str):
     try:
         birthday = datetime.strptime(birthday,"%Y-%m-%d")
     except:

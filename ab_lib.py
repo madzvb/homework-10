@@ -203,6 +203,8 @@ class Record():
             self._birthday = birthday
         elif isinstance(birthday,str):
             self._birthday = datetime.strptime(birthday,"%Y-%m-%d")
+        else:
+            self._birthday = None
 
     def days_to_birthday(self) -> int:
         if not self._birthday:
