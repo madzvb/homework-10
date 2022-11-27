@@ -425,7 +425,10 @@ def main():
     parser, exit_alias = create_parser()
     ARGS = parser.parse_args()
     # Load DB
-    load(None)
+    try:
+        load(None)
+    except Exception as e:
+        print(e)
 
     if ARGS.unattended:
         if ARGS.unattended.exists():
@@ -458,5 +461,5 @@ def main():
                     break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
