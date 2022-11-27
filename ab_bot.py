@@ -17,6 +17,8 @@ Internal commands description:
     'view       "Firstname Lastname"'   -   View contact
     'view_all   "Firstname Lastname"'   -   View all contact
 
+    'find   "Firstname Lastname"|"phone number"'   -   Find conteact by name or phone number
+
     'load filename.json=db.json'    -   Append DB records from JSON
     'save filename.json=db.json'    -   Save DB to JSON
 
@@ -24,11 +26,14 @@ Internal commands description:
         [{'name': 'Sasha', 'phones': ['123', '456', '789']}, {'name': 'Vova', 'phones': ['123', '456', '789']}]
     For command aliases see argparser creation function - create_argument_parser()
 
-    TODO: birthday processing
+    TODO:
+        birthday processing
+        regexp in find command
 """
 
 
 import argparse
+from datetime  import datetime
 import json
 from pathlib import Path
 import re
@@ -57,6 +62,8 @@ def error_handler(function):
             result = e
         except TypeError as e:
             result = e
+        except ValueError as e:
+            result = e
         except Exception as e:
             result = e
         return result
@@ -78,7 +85,10 @@ def load(args)-> str:
                 # CONTACTS = AddressBook() #.update(contacts)
                 for record in records:
                     # for key,value in record.items():
-                    CONTACTS[record["name"]] = Record(record["name"],record["phones"])
+                    if record.get("birthday"):
+                        CONTACTS[record["name"]] = Record(record["name"],record["phones"],record["birthday"])
+                    else:
+                        CONTACTS[record["name"]] = Record(record["name"],record["phones"])
         return ""
     else:
         raise Exception(f"{db_file} not found.")
@@ -87,7 +97,7 @@ def load(args)-> str:
 @error_handler
 def save(args)-> str:
     db_file = None
-    if args.file:
+    if args and args.file:
         db_file = args.file
     elif ARGS.db:
         db_file = ARGS.db
@@ -120,6 +130,13 @@ def check_phone(phone,raise_exception=True):
         else:
             return phone
     return result
+
+
+def check_bithday(birthday: str):
+    try:
+        birthday = datetime.strptime(birthday,"%Y-%m-%d")
+    except:
+        pass
 
 
 """DB functions"""
@@ -206,6 +223,21 @@ def view_all(args)-> str:
     return f"{CONTACTS}"
 
 
+@error_handler
+def find(args)-> str:
+    records = []
+    if check_phone(args.name,False):
+        for contact in CONTACTS.values():
+            for phone in contact.phones:
+               if phone.find(args.name) >= 0:
+                records.append(contact)
+    else:
+        for key,value in CONTACTS.items():
+            if key.upper().find(args.name.upper()) >= 0:
+                records.append(value)
+    return "\n".join(str(record) for record in records)
+
+
 def create_parser():
 
     exit_alias = ["good","bye","good_bye","close"]
@@ -231,9 +263,11 @@ def create_parser():
     'delete_all'                      -   Clear DB\n\
     'view       \"Firstname Lastname\"' -   View contact\n\
     'view_all   \"Firstname Lastname\"' -   View all contact\n\
+    'find \"name|phone\"'\n\
     \n\
     'load filename.json=db.json'    -   Append DB records from JSON\n\
     'save filename.json=db.json'    -   Save DB to JSON\n\
+    \n\
     JSON file example:\n\
         [{'name': 'Sasha', 'phones': ['123', '456', '789']}, {'name': 'Vova', 'phones': ['123', '456', '789']}]"
     )
@@ -342,6 +376,18 @@ def create_parser():
         help = "View all contacts in DB"
     )
     parser_view_all.set_defaults(func = view_all)
+
+    parser_find = subparsers.add_parser(
+        "find",
+        exit_on_error = exit_on_error,
+        aliases = ["f"],
+        help = "Find contacts in DB by name or by phone with pattern - *seached string*."
+    )
+    parser_find.add_argument(
+        "name",
+        help = "Contact's name | phone number"
+    )
+    parser_find.set_defaults(func = find)
 
     parser_hello = subparsers.add_parser(
         "hello",
@@ -461,7 +507,10 @@ def main():
             if parsed_commands:
                 if check_exit(parsed_commands.command,exit_alias):
                     break
-
-
+    # Always save change.
+    try:
+        save(None) # None is default by --db options
+    except Exception as e:
+        print(e)
 if __name__ == "__main__":
     main()

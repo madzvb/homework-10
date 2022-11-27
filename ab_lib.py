@@ -117,7 +117,7 @@ class UDict(UserDict):
     #     pass # raise NotImplementedError(self)
 
     def toJSON(self):
-        return json.dumps(self.value)
+        return json.dumps(self.value,indent=4)
 
     # def __iter__(self):# -> Iterator[_KT]:
     #     return iter(self.data.values())
@@ -134,7 +134,7 @@ class Record():
     def __init__(self, name: str, phone = None, birthday: Birthday = None) -> None:
         self._name      = Name(name)
         self._phones    = UDict()
-        self._birthday  = birthday
+        # self._birthday  = birthday
 
         if isinstance(phone,Phone):
             self._phones[phone.value] = phone
@@ -143,6 +143,13 @@ class Record():
                 self._phones[p] = Phone(p)
         else:
             self._phones[phone] = Phone(phone)
+        if not birthday:
+            self._birthday  = birthday
+        else:
+            if isinstance(birthday,Birthday):
+                self._birthday = birthday
+            elif isinstance(birthday,str):
+                self._birthday = datetime.strptime(birthday,"%Y-%m-%d")
 
     @property
     def name(self):
@@ -157,8 +164,8 @@ class Record():
     def value(self):
         result = {}
         result["name"]      = self.name.value
-        result["phones"]    = self.phones.value if self.birthday else None
-        result["birthday"]  = self.birthday.value if self.birthday else None
+        if self.phones:     result["phones"]    = self.phones.value if self.phones else None
+        if self.birthday:   result["birthday"]  = self.birthday.strftime("%Y-%m-%d") if self.birthday else None
         return result
     
     @property
@@ -172,7 +179,6 @@ class Record():
     def toJSON(self):
         return json.dumps(self.value)
     
-
     def __str__(self):
         return f"{self.value}"
 
@@ -192,8 +198,11 @@ class Record():
         return self._birthday
     
     @birthday.setter
-    def birthday(self, birthday: Birthday):
-        self._birthday = birthday
+    def birthday(self, birthday):
+        if isinstance(birthday,Birthday):
+            self._birthday = birthday
+        elif isinstance(birthday,str):
+            self._birthday = datetime.strptime(birthday,"%Y-%m-%d")
 
     def days_to_birthday(self) -> int:
         if not self._birthday:
